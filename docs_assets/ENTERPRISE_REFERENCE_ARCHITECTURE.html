@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Purple Team Lab — Full Documentation</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.mermaid) {
+      mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    }
+  });
+</script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #1a1a1a;
+    --muted: #5a5a5a;
+    --accent: #2b6cb0;
+    --code-bg: #f5f5f7;
+    --border: #e2e2e2;
+    --table-head: #f0f4f8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+  }
+  h1, h2, h3, h4 {
+    font-weight: 600;
+    line-height: 1.3;
+    margin-top: 2.2em;
+    margin-bottom: 0.6em;
+  }
+  h1 { font-size: 2rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.3em; }
+  h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+  h3 { font-size: 1.2rem; color: var(--accent); }
+  p { margin: 0.9em 0; }
+  a { color: var(--accent); }
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1em 1.2em;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.88em;
+  }
+  pre.mermaid {
+    background: #fafbfc;
+    text-align: center;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.2em 0;
+    font-size: 0.92em;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 0.5em 0.8em;
+    text-align: left;
+  }
+  th { background: var(--table-head); font-weight: 600; }
+  tr:nth-child(even) { background: #fafafa; }
+  blockquote {
+    border-left: 4px solid var(--accent);
+    margin: 1em 0;
+    padding: 0.2em 1.2em;
+    color: var(--muted);
+    background: #f8fafc;
+  }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+  #TOC {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2em 1.8em;
+    margin: 2em 0;
+  }
+  #TOC ul { padding-left: 1.2em; }
+  #TOC > ul { list-style: none; padding-left: 0; }
+  .header-note {
+    background: #fff8e6;
+    border: 1px solid #f0d896;
+    border-radius: 8px;
+    padding: 0.8em 1.2em;
+    margin-bottom: 2em;
+    font-size: 0.92em;
+  }
+  img { max-width: 100%; height: auto; display: block; margin: 1.2em auto; }
+</style>
+</head>
+<body>
+<div class="header-note">
+  This HTML file is self-contained except for one thing: the architecture diagram renders live via <a href="https://mermaid.js.org" target="_blank">mermaid.js</a> loaded from a CDN, so an internet connection is needed for that diagram specifically to display. Everything else works fully offline.
+</div>
+<h1 id="from-lab-to-production-the-real-enterprise-architecture">From
+Lab to Production: The Real Enterprise Architecture</h1>
+<p><strong>Purpose of this document:</strong> two separate things, kept
+clearly apart on purpose. Section 1 is what a large organization
+actually has, or is expected to have, for AI agent supply chain security
+— grounded in real frameworks, not aspiration. Section 2 is an honest
+map of this lab against that standard: what’s already validated, what’s
+a deliberate lab shortcut, and what’s a genuine gap that has to be built
+before any of this goes near production. The point isn’t to make the lab
+look bigger than it is — it’s to know exactly what “production-ready”
+actually requires before anyone claims it.</p>
+<hr />
+<h2 id="what-a-real-enterprise-architecture-looks-like">1. What a real
+enterprise architecture looks like</h2>
+<p>Organized by domain. Each one names the real standard or framework
+it’s grounded in, not just a description of “best practice.”</p>
+<h3
+id="a.-governance-risk-organizational-not-technical-but-the-foundation-everything-else-sits-on">A.
+Governance &amp; risk (organizational, not technical — but the
+foundation everything else sits on)</h3>
+<ul>
+<li><strong>An AI governance function</strong> — a named owner (often a
+model risk committee, security architecture board, or AI CoE) that
+approves new agent tools/capabilities before they reach production, the
+same way a change advisory board approves infrastructure changes.</li>
+<li><strong>Formal risk classification</strong> per agent/tool — what
+data it can touch, what actions it can take, what the blast radius is if
+it’s compromised. This drives how much of everything below actually gets
+applied to a given tool.</li>
+<li><strong>Grounded in:</strong> NIST AI Risk Management Framework (AI
+RMF), ISO/IEC 42001 (AI management systems).</li>
+</ul>
+<h3 id="b.-identity-access">B. Identity &amp; access</h3>
+<ul>
+<li><strong>Centralized identity provider</strong> (Entra ID, Okta,
+Ping) — no application manages its own user directory.</li>
+<li><strong>Workload identity federation</strong> for every
+service-to-service call — no long-lived static credentials, anywhere.
+This lab already builds toward this (UC2, Entra ID managed
+identity).</li>
+<li><strong>Privileged Access Management (PAM)</strong> with
+just-in-time elevation for any human who can approve a tool
+registration, touch the registry directly, or clear a quarantine.</li>
+<li><strong>Segregation of duties</strong>, enforced technically, not
+just on paper — the person who can approve a tool registration cannot
+also be the identity that publishes it.</li>
+<li><strong>Grounded in:</strong> NIST SP 800-207 (Zero Trust
+Architecture).</li>
+</ul>
+<h3 id="c.-software-supply-chain-cicd-build-integrity">C. Software
+supply chain (CI/CD, build integrity)</h3>
+<ul>
+<li><strong>Branch protection + required code review</strong> on
+anything that builds or publishes a tool.</li>
+<li><strong>Signed commits and signed build artifacts</strong>, with
+build provenance attestation — not just “we published this,” but a
+cryptographically verifiable “this exact commit, on this exact runner,
+produced this exact artifact.”</li>
+<li><strong>Ephemeral, isolated build runners</strong> — a compromised
+runner doesn’t persist and doesn’t have standing access to anything
+beyond that one build.</li>
+<li><strong>SBOM (Software Bill of Materials)</strong> generated on
+every build, checked against known-vulnerable dependencies before
+publish.</li>
+<li><strong>Secrets never committed</strong> — pulled from a vault at
+build time with a short-lived token, never a long-lived key in a
+pipeline variable.</li>
+<li><strong>Grounded in:</strong> SLSA (Supply-chain Levels for Software
+Artifacts), NIST SSDF (Secure Software Development Framework).</li>
+</ul>
+<h3 id="d.-tool-mcp-registry-governance">D. Tool / MCP registry
+governance</h3>
+<ul>
+<li><strong>Formal approval workflow tied to a change record</strong> —
+a tool doesn’t go live because someone called an API; it goes live
+because a documented, auditable approval happened.</li>
+<li><strong>Re-approval required on ANY change</strong>, not just
+initial registration — this is the single most important control this
+lab’s whole UC1 story is built around, and it’s a real, current best
+practice, not a lab invention.</li>
+<li><strong>Independent verification the registry isn’t trusting the
+CI/CD pipeline blindly</strong> — the registry itself (or a gateway in
+front of it) re-validates what it receives, rather than assuming
+anything that reached it via an authenticated pipeline is automatically
+safe.</li>
+<li><strong>Grounded in:</strong> OWASP Agentic AI / MCP Top 10 (MCP03
+Tool Poisoning, MCP04 Supply Chain), which this lab already maps its own
+detections to.</li>
+</ul>
+<h3 id="e.-network-runtime-isolation">E. Network &amp; runtime
+isolation</h3>
+<ul>
+<li><strong>Segmented networks per environment</strong>
+(dev/staging/production), not a flat network with role-based access as
+the only boundary.</li>
+<li><strong>Private endpoints / no public exposure</strong> for anything
+internal — registry, identity provider, secrets store.</li>
+<li><strong>Sandboxed execution for actual tool calls</strong> — an
+agent’s tool invocation runs in an isolated context, not directly
+against production infrastructure with the agent’s full
+permissions.</li>
+<li><strong>Real-time inline enforcement at a gateway</strong>, not just
+logging after the fact — this lab’s own K8s gateway architecture is a
+genuine instance of this pattern, not a simplification of it.</li>
+</ul>
+<h3 id="f.-detection-response-soc">F. Detection, response &amp; SOC</h3>
+<ul>
+<li><strong>A real SIEM</strong>, centralized, not optional — Splunk,
+Microsoft Sentinel, or equivalent, receiving telemetry from every layer
+above.</li>
+<li><strong>24/7 monitoring</strong>, either an internal SOC or an MDR
+provider — a detection that fires at 3am on a Saturday needs someone to
+see it.</li>
+<li><strong>SOAR-driven automated response playbooks</strong> for
+well-understood attack patterns, with human sign-off required for
+anything ambiguous — the same self-consistency + evidence-grounding
+principle this lab’s own triage layer already applies, at organizational
+scale.</li>
+<li><strong>Scheduled, recurring purple-team exercises</strong> against
+the real production detection rules — not a one-time build-and-forget.
+<strong>This is literally what this lab is for.</strong></li>
+</ul>
+<h3 id="g.-observability-compliance">G. Observability &amp;
+compliance</h3>
+<ul>
+<li><strong>Full-stack observability</strong> (logs, metrics, traces),
+not just security events — a security incident is often visible first as
+a performance anomaly.</li>
+<li><strong>Audit log retention meeting compliance requirements</strong>
+— SOC 2, ISO 27001, or sector-specific regulation (e.g., OSFI guidance
+for Canadian financial institutions), which typically means retention
+far longer than this lab’s local hash-chained log.</li>
+<li><strong>Regular third-party audits and penetration tests</strong>,
+independent of the internal purple team.</li>
+</ul>
+<h3 id="h.-resilience">H. Resilience</h3>
+<ul>
+<li><strong>Multi-region redundancy</strong> for anything the agent
+supply chain depends on to function — a registry outage shouldn’t mean
+every agent in the company stops working.</li>
+<li><strong>Documented, tested incident response plan specifically for
+an AI agent compromise scenario</strong> — not a generic IR plan with
+“AI” added as an afterthought.</li>
+</ul>
+<hr />
+<h2 id="honest-map-this-lab-against-that-standard">2. Honest map: this
+lab against that standard</h2>
+<div style="margin: 1.5em 0;">
+<svg viewBox="0 0 1420 460" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Maturity scorecard showing this lab's coverage against eight enterprise security domains: governance and risk (not built), identity and access (partial), software supply chain (lab-realistic), tool registry governance (strongest area), network and runtime isolation (partial), detection response and SOC (partial), observability and compliance (minimal), resilience (not built)">
+  <defs>
+    <style>
+      .card-title { font-family: sans-serif; font-size: 14px; font-weight: 700; fill: #14181f; }
+      .card-sub { font-family: sans-serif; font-size: 10.5px; fill: #4a5265; }
+      .card-status { font-family: sans-serif; font-size: 10.5px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <text x="20" y="24" font-family="sans-serif" font-size="13" font-weight="700" fill="#4a5265">LAB MATURITY AGAINST 8 ENTERPRISE DOMAINS</text>
+
+  <!-- Row 1 -->
+  <rect x="20" y="45" width="320" height="160" rx="10" fill="#fbe9e7" stroke="#c4271a" stroke-width="2"/>
+  <text x="38" y="72" class="card-title">A &#183; Governance &amp; Risk</text>
+  <text x="38" y="92" class="card-sub">Approval authority, risk classification</text>
+  <rect x="38" y="108" width="130" height="24" rx="12" fill="#c4271a"/>
+  <text x="103" y="124" text-anchor="middle" class="card-status" fill="#fff">NOT BUILT</text>
+  <text x="38" y="155" class="card-sub" style="font-size:10px;">Organizational function — needs a</text>
+  <text x="38" y="170" class="card-sub" style="font-size:10px;">real owner at your company, not code.</text>
+
+  <rect x="370" y="45" width="320" height="160" rx="10" fill="#fdf3e7" stroke="#b45309" stroke-width="2"/>
+  <text x="388" y="72" class="card-title">B &#183; Identity &amp; Access</text>
+  <text x="388" y="92" class="card-sub">Federated identity, PAM, seg. of duties</text>
+  <rect x="388" y="108" width="130" height="24" rx="12" fill="#b45309"/>
+  <text x="453" y="124" text-anchor="middle" class="card-status" fill="#fff">PARTIAL</text>
+  <text x="388" y="155" class="card-sub" style="font-size:10px;">UC2 uses real Entra ID Workload</text>
+  <text x="388" y="170" class="card-sub" style="font-size:10px;">Identity. PAM/seg. of duties: not built.</text>
+
+  <rect x="720" y="45" width="320" height="160" rx="10" fill="#fdf3e7" stroke="#b45309" stroke-width="2"/>
+  <text x="738" y="72" class="card-title">C &#183; Software Supply Chain</text>
+  <text x="738" y="92" class="card-sub">Signed builds, SLSA, SBOM</text>
+  <rect x="738" y="108" width="170" height="24" rx="12" fill="#b45309"/>
+  <text x="823" y="124" text-anchor="middle" class="card-status" fill="#fff">LAB-REALISTIC</text>
+  <text x="738" y="155" class="card-sub" style="font-size:10px;">UC4 hits real DevOps/CodeArtifact APIs.</text>
+  <text x="738" y="170" class="card-sub" style="font-size:10px;">No signing, SLSA, or SBOM yet.</text>
+
+  <rect x="1070" y="45" width="330" height="160" rx="10" fill="#e4f7ee" stroke="#0f9d63" stroke-width="2.5"/>
+  <text x="1088" y="72" class="card-title">D &#183; Tool/MCP Registry Gov.</text>
+  <text x="1088" y="92" class="card-sub">Re-approval on change, verification</text>
+  <rect x="1088" y="108" width="150" height="24" rx="12" fill="#0f9d63"/>
+  <text x="1163" y="124" text-anchor="middle" class="card-status" fill="#fff">STRONGEST AREA</text>
+  <text x="1088" y="155" class="card-sub" style="font-size:10px;">UC1 rug-pull detection + gateway</text>
+  <text x="1088" y="170" class="card-sub" style="font-size:10px;">quarantine are real instances of this.</text>
+
+  <!-- Row 2 -->
+  <rect x="20" y="235" width="320" height="160" rx="10" fill="#fdf3e7" stroke="#b45309" stroke-width="2"/>
+  <text x="38" y="262" class="card-title">E &#183; Network &amp; Runtime</text>
+  <text x="38" y="282" class="card-sub">Segmentation, private endpoints, sandbox</text>
+  <rect x="38" y="298" width="130" height="24" rx="12" fill="#b45309"/>
+  <text x="103" y="314" text-anchor="middle" class="card-status" fill="#fff">PARTIAL</text>
+  <text x="38" y="345" class="card-sub" style="font-size:10px;">Real in K8s (NetworkPolicy). No</text>
+  <text x="38" y="360" class="card-sub" style="font-size:10px;">sandboxed tool execution anywhere.</text>
+
+  <rect x="370" y="235" width="320" height="160" rx="10" fill="#fdf3e7" stroke="#b45309" stroke-width="2"/>
+  <text x="388" y="262" class="card-title">F &#183; Detection, Response &amp; SOC</text>
+  <text x="388" y="282" class="card-sub">SIEM, 24/7 monitoring, SOAR</text>
+  <rect x="388" y="298" width="130" height="24" rx="12" fill="#b45309"/>
+  <text x="453" y="314" text-anchor="middle" class="card-status" fill="#fff">PARTIAL</text>
+  <text x="388" y="345" class="card-sub" style="font-size:10px;">Splunk/CrowdStrike/Netskope/Zabbix</text>
+  <text x="388" y="360" class="card-sub" style="font-size:10px;">real. No 24/7 SOC, no SOAR.</text>
+
+  <rect x="720" y="235" width="320" height="160" rx="10" fill="#fbe9e7" stroke="#c4271a" stroke-width="2"/>
+  <text x="738" y="262" class="card-title">G &#183; Observability &amp; Compliance</text>
+  <text x="738" y="282" class="card-sub">Full-stack observability, retention</text>
+  <rect x="738" y="298" width="110" height="24" rx="12" fill="#c4271a"/>
+  <text x="793" y="314" text-anchor="middle" class="card-status" fill="#fff">MINIMAL</text>
+  <text x="738" y="345" class="card-sub" style="font-size:10px;">Hash chain proves the mechanism.</text>
+  <text x="738" y="360" class="card-sub" style="font-size:10px;">Not a compliance-grade retention story.</text>
+
+  <rect x="1070" y="235" width="330" height="160" rx="10" fill="#fbe9e7" stroke="#c4271a" stroke-width="2"/>
+  <text x="1088" y="262" class="card-title">H &#183; Resilience</text>
+  <text x="1088" y="282" class="card-sub">Multi-region, tested IR plan</text>
+  <rect x="1088" y="298" width="130" height="24" rx="12" fill="#c4271a"/>
+  <text x="1153" y="314" text-anchor="middle" class="card-status" fill="#fff">NOT BUILT</text>
+  <text x="1088" y="345" class="card-sub" style="font-size:10px;">Everything here is deliberately</text>
+  <text x="1088" y="360" class="card-sub" style="font-size:10px;">single-instance and disposable.</text>
+
+  <g transform="translate(20,420)">
+    <rect width="14" height="14" rx="3" fill="#0f9d63"/>
+    <text x="20" y="12" font-family="sans-serif" font-size="11" fill="#4a5265">real, validated control</text>
+    <rect x="230" width="14" height="14" rx="3" fill="#b45309"/>
+    <text x="250" y="12" font-family="sans-serif" font-size="11" fill="#4a5265">partial — real mechanism, incomplete coverage</text>
+    <rect x="590" width="14" height="14" rx="3" fill="#c4271a"/>
+    <text x="610" y="12" font-family="sans-serif" font-size="11" fill="#4a5265">not built — organizational or out-of-scope-for-a-lab</text>
+  </g>
+</svg>
+
+</div>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Domain</th>
+<th>What a real enterprise has</th>
+<th>Where this lab stands today</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>A. Governance &amp; risk</td>
+<td>Named approval authority, formal risk classification</td>
+<td><strong>Not built.</strong> This is an organizational function, not
+something a lab can simulate — needs a real owner at your company</td>
+</tr>
+<tr class="even">
+<td>B. Identity &amp; access</td>
+<td>Federated workload identity, PAM, segregation of duties</td>
+<td><strong>Partially real.</strong> UC2 uses genuine Entra ID/Workload
+Identity Federation patterns. PAM and segregation of duties are not
+implemented — <code>APPROVED_ACTORS</code> is a hardcoded list, not a
+real IAM integration</td>
+</tr>
+<tr class="odd">
+<td>C. Software supply chain</td>
+<td>Signed commits, SLSA provenance, ephemeral runners, SBOM</td>
+<td><strong>Lab-realistic, not enterprise-grade.</strong> UC4 hits real
+Azure DevOps/AWS CodeArtifact APIs — genuine build/publish calls. No
+commit signing, no SLSA attestation, no SBOM generation exist yet</td>
+</tr>
+<tr class="even">
+<td>D. Tool/MCP registry governance</td>
+<td>Re-approval on every change, independent verification</td>
+<td><strong>This is the lab’s strongest area.</strong> UC1’s rug-pull
+detection and the K8s gateway’s quarantine-on-change are real instances
+of exactly this control, not simulations of it</td>
+</tr>
+<tr class="odd">
+<td>E. Network &amp; runtime isolation</td>
+<td>Segmented networks, private endpoints, sandboxed execution</td>
+<td><strong>Real in the K8s architecture, absent in local mode.</strong>
+The gateway’s NetworkPolicy segmentation is genuine. No sandboxed tool
+execution exists anywhere yet — this lab’s “tool calls” are always
+simulated, never real code execution, which is correct for lab safety
+but is not the isolation control production needs</td>
+</tr>
+<tr class="even">
+<td>F. Detection, response &amp; SOC</td>
+<td>Real SIEM, 24/7 monitoring, SOAR, recurring purple-team</td>
+<td><strong>Detection logic is real; the organization around it
+isn’t.</strong> Splunk forwarding, CrowdStrike/Netskope/Zabbix
+enrichment, and the AI triage layer are genuine integrations. No 24/7
+monitoring, no SOAR, and “recurring purple-team” is literally what
+running this lab on a schedule would become</td>
+</tr>
+<tr class="odd">
+<td>G. Observability &amp; compliance</td>
+<td>Full-stack observability, compliance-grade retention, third-party
+audit</td>
+<td><strong>Minimal.</strong> The hash-chained audit log proves
+tamper-evidence as a <em>mechanism</em> — it does not meet any real
+compliance retention/audit standard as deployed today</td>
+</tr>
+<tr class="even">
+<td>H. Resilience</td>
+<td>Multi-region, tested IR plan for AI compromise</td>
+<td><strong>Not built.</strong> Everything in this lab is deliberately
+single-instance and disposable — that’s correct for a lab, wrong for
+production</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-honest-one-line-summary">The honest one-line summary</h3>
+<p><strong>This lab proves the detection and prevention <em>logic</em>
+works, against real cloud services, with real telemetry.</strong> That
+is a genuinely hard problem and it’s solved here. <strong>It does not
+yet prove the <em>organizational and operational</em> controls around
+that logic exist</strong> — approval authority, PAM, SLSA-level build
+integrity, 24/7 response, compliance retention. Those aren’t code
+problems this lab can solve for you; they’re organizational decisions
+your company has to make and then this lab’s logic gets deployed
+into.</p>
+<p>That’s the actual path to production: not “harden the scripts more,”
+but “put these already-validated scripts inside the organizational
+controls in Section 1 that don’t exist yet.”</p>
+</body></html>

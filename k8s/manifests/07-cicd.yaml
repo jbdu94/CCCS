@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cicd
+  namespace: purple-team-lab
+  labels:
+    app: cicd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cicd
+  template:
+    metadata:
+      labels:
+        app: cicd
+    spec:
+      serviceAccountName: cicd-sa
+      containers:
+        - name: cicd
+          image: python:3.12-slim
+          command: ["sh", "-c"]
+          args:
+            - |
+              pip install --no-cache-dir -r /app/requirements.txt && \
+              cd /app && \
+              exec uvicorn app:app --host 0.0.0.0 --port 8000
+          ports:
+            - containerPort: 8000
+          env:
+            - name: EVENT_LOG_PATH
+              value: "/logs/events.jsonl"
+          volumeMounts:
+            - name: app-code
+              mountPath: /app
+            - name: logs
+              mountPath: /logs
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "256Mi" }
+      volumes:
+        - name: app-code
+          configMap:
+            name: cicd-code
+        - name: logs
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cicd
+  namespace: purple-team-lab
+spec:
+  selector:
+    app: cicd
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP

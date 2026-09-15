@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-runtime
+  namespace: purple-team-lab
+  labels:
+    app: agent-runtime
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-runtime
+  template:
+    metadata:
+      labels:
+        app: agent-runtime
+    spec:
+      serviceAccountName: agent-runtime-sa
+      containers:
+        - name: agent-runtime
+          image: python:3.12-slim
+          command: ["sh", "-c"]
+          args:
+            - |
+              pip install --no-cache-dir -r /app/requirements.txt && \
+              cd /app && \
+              exec uvicorn app:app --host 0.0.0.0 --port 8000
+          ports:
+            - containerPort: 8000
+          env:
+            - name: GATEWAY_URL
+              value: "http://gateway:8000"
+            - name: POLL_INTERVAL_SECONDS
+              value: "5"
+            - name: AGENT_ID
+              value: "downstream-agent-1"
+          volumeMounts:
+            - name: app-code
+              mountPath: /app
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits: { cpu: "200m", memory: "128Mi" }
+      volumes:
+        - name: app-code
+          configMap:
+            name: agent-runtime-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-runtime
+  namespace: purple-team-lab
+spec:
+  selector:
+    app: agent-runtime
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP

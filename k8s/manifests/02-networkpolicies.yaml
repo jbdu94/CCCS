@@ -1,0 +1,205 @@
+# Zero-trust segmentation: registry and identity can ONLY be reached by
+# the gateway. Nothing else in the namespace - including a compromised
+# agent-runtime, and including you trying to port-forward straight to
+# registry to skip the gateway's scanning - can reach them directly.
+# This is what makes "go through the gateway" a real, enforced boundary
+# instead of just a suggestion in the app code.
+#
+# IMPORTANT CAVEAT (stated plainly, not discovered the hard way by you):
+# whether `kubectl port-forward` traffic is itself subject to
+# NetworkPolicy enforcement depends on your cluster's CNI. Most modern
+# CNIs (Calico, Cilium) do enforce it, since the traffic still enters
+# through the pod's network namespace - but this was NOT verified
+# against a real cluster from where this was built (no cluster access
+# there). Confirm this yourself: after deploying, try
+# `kubectl port-forward svc/registry 8001:8000` and confirm you get
+# either a connection that's promptly reset/refused, or (if your CNI
+# doesn't enforce it on port-forward) at least know that going in.
+
+# 1. Default deny-all - baseline. Every other policy below is an
+#    exception to this.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: purple-team-lab
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# 2. Every pod needs DNS to resolve service names (registry, identity,
+#    gateway) - without this, default-deny-all breaks everything,
+#    including the exceptions below that reference DNS names.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: purple-team-lab
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# 3. Registry only accepts traffic from the gateway
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: registry-allow-from-gateway-only
+  namespace: purple-team-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: registry
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: gateway
+      ports:
+        - protocol: TCP
+          port: 8000
+---
+# 4. Identity only accepts traffic from the gateway
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: identity-allow-from-gateway-only
+  namespace: purple-team-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: identity
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: gateway
+      ports:
+        - protocol: TCP
+          port: 8000
+---
+# 5. Gateway accepts traffic from agent-runtime AND from wherever your
+#    kubectl port-forward lands (the "external" entry point) - this is
+#    intentionally open on ingress since it's the one component meant
+#    to be a public entry point, same role as a real API gateway.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gateway-allow-ingress
+  namespace: purple-team-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: gateway
+  policyTypes:
+    - Ingress
+  ingress:
+    - {}
+---
+# 6. Gateway can ONLY egress to registry and identity (plus DNS, allowed
+#    separately above) - even the gateway itself can't reach anything
+#    else in the namespace or outside it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gateway-allow-egress-to-backends
+  namespace: purple-team-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: gateway
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: registry
+      ports:
+        - protocol: TCP
+          port: 8000
+    - to:
+        - podSelector:
+            matchLabels:
+              app: identity
+      ports:
+        - protocol: TCP
+          port: 8000
+---
+# 7. agent-runtime can ONLY egress to the gateway - it cannot reach
+#    registry or identity directly, same as any real downstream agent
+#    shouldn't be able to bypass the gateway it's supposed to go through.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: agent-runtime-allow-egress-to-gateway-only
+  namespace: purple-team-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: agent-runtime
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: gateway
+      ports:
+        - protocol: TCP
+          port: 8000
+---
+# 8. cicd (Branch A) accepts traffic from anywhere - like the gateway,
+#    a real CI/CD system is normally reachable by developers and
+#    webhooks, not purely internal.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cicd-allow-ingress
+  namespace: purple-team-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: cicd
+  policyTypes:
+    - Ingress
+  ingress:
+    - {}
+---
+# 9. cicd can ONLY egress to the gateway - this is the Branch A -> Branch
+#    B bridge (a poisoned build registering a new MCP tool) and nothing
+#    else. cicd cannot reach registry or identity directly, same
+#    boundary agent-runtime respects.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cicd-allow-egress-to-gateway-only
+  namespace: purple-team-lab
+spec:
+  podSelector:
+    matchLabels:
+      app: cicd
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: gateway
+      ports:
+        - protocol: TCP
+          port: 8000

@@ -1,0 +1,68 @@
+# The container image here is plain python:3.12-slim, not a custom-built
+# image. This is deliberate: it means you don't need push access to a
+# container registry to use this - only namespace-scoped permissions to
+# create a Deployment/Service/ConfigMap, which is the common case for a
+# shared or multi-tenant Kubernetes lab where you get your own namespace
+# but not necessarily a registry.
+#
+# The actual app code (app.py, logging_utils.py, requirements.txt) is
+# mounted in from the purple-team-target-code ConfigMap, which deploy.sh
+# generates directly from your local target/ folder at deploy time - so
+# it can never silently drift out of sync with the code you're testing.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: purple-team-target
+  namespace: purple-team-lab
+  labels:
+    app: purple-team-target
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: purple-team-target
+  template:
+    metadata:
+      labels:
+        app: purple-team-target
+    spec:
+      containers:
+        - name: target
+          image: python:3.12-slim
+          command: ["sh", "-c"]
+          args:
+            - |
+              pip install --no-cache-dir -r /app/requirements.txt && \
+              cd /app && \
+              exec uvicorn app:app --host 0.0.0.0 --port 8000
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MOCK_MODE
+              value: "true"
+            - name: EVENT_LOG_PATH
+              value: "/logs/events.jsonl"
+          volumeMounts:
+            - name: app-code
+              mountPath: /app
+            - name: logs
+              mountPath: /logs
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+      volumes:
+        - name: app-code
+          configMap:
+            name: purple-team-target-code
+        - name: logs
+          emptyDir: {}

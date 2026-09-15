@@ -1,0 +1,87 @@
+<svg viewBox="0 0 1420 460" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="Maturity scorecard showing this lab's coverage against eight enterprise security domains: governance and risk (not built), identity and access (partial), software supply chain (lab-realistic), tool registry governance (strongest area), network and runtime isolation (partial), detection response and SOC (partial), observability and compliance (minimal), resilience (not built)">
+  <defs>
+    <style>
+      .card-title { font-family: sans-serif; font-size: 14px; font-weight: 700; fill: #14181f; }
+      .card-sub { font-family: sans-serif; font-size: 10.5px; fill: #4a5265; }
+      .card-status { font-family: sans-serif; font-size: 10.5px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <text x="20" y="24" font-family="sans-serif" font-size="13" font-weight="700" fill="#4a5265">LAB MATURITY AGAINST 8 ENTERPRISE DOMAINS</text>
+
+  <!-- Row 1 -->
+  <rect x="20" y="45" width="320" height="160" rx="10" fill="#fbe9e7" stroke="#c4271a" stroke-width="2"/>
+  <text x="38" y="72" class="card-title">A &#183; Governance &amp; Risk</text>
+  <text x="38" y="92" class="card-sub">Approval authority, risk classification</text>
+  <rect x="38" y="108" width="130" height="24" rx="12" fill="#c4271a"/>
+  <text x="103" y="124" text-anchor="middle" class="card-status" fill="#fff">NOT BUILT</text>
+  <text x="38" y="155" class="card-sub" style="font-size:10px;">Organizational function — needs a</text>
+  <text x="38" y="170" class="card-sub" style="font-size:10px;">real owner at your company, not code.</text>
+
+  <rect x="370" y="45" width="320" height="160" rx="10" fill="#fdf3e7" stroke="#b45309" stroke-width="2"/>
+  <text x="388" y="72" class="card-title">B &#183; Identity &amp; Access</text>
+  <text x="388" y="92" class="card-sub">Federated identity, PAM, seg. of duties</text>
+  <rect x="388" y="108" width="130" height="24" rx="12" fill="#b45309"/>
+  <text x="453" y="124" text-anchor="middle" class="card-status" fill="#fff">PARTIAL</text>
+  <text x="388" y="155" class="card-sub" style="font-size:10px;">UC2 uses real Entra ID Workload</text>
+  <text x="388" y="170" class="card-sub" style="font-size:10px;">Identity. PAM/seg. of duties: not built.</text>
+
+  <rect x="720" y="45" width="320" height="160" rx="10" fill="#fdf3e7" stroke="#b45309" stroke-width="2"/>
+  <text x="738" y="72" class="card-title">C &#183; Software Supply Chain</text>
+  <text x="738" y="92" class="card-sub">Signed builds, SLSA, SBOM</text>
+  <rect x="738" y="108" width="170" height="24" rx="12" fill="#b45309"/>
+  <text x="823" y="124" text-anchor="middle" class="card-status" fill="#fff">LAB-REALISTIC</text>
+  <text x="738" y="155" class="card-sub" style="font-size:10px;">UC4 hits real DevOps/CodeArtifact APIs.</text>
+  <text x="738" y="170" class="card-sub" style="font-size:10px;">No signing, SLSA, or SBOM yet.</text>
+
+  <rect x="1070" y="45" width="330" height="160" rx="10" fill="#e4f7ee" stroke="#0f9d63" stroke-width="2.5"/>
+  <text x="1088" y="72" class="card-title">D &#183; Tool/MCP Registry Gov.</text>
+  <text x="1088" y="92" class="card-sub">Re-approval on change, verification</text>
+  <rect x="1088" y="108" width="150" height="24" rx="12" fill="#0f9d63"/>
+  <text x="1163" y="124" text-anchor="middle" class="card-status" fill="#fff">STRONGEST AREA</text>
+  <text x="1088" y="155" class="card-sub" style="font-size:10px;">UC1 rug-pull detection + gateway</text>
+  <text x="1088" y="170" class="card-sub" style="font-size:10px;">quarantine are real instances of this.</text>
+
+  <!-- Row 2 -->
+  <rect x="20" y="235" width="320" height="160" rx="10" fill="#fdf3e7" stroke="#b45309" stroke-width="2"/>
+  <text x="38" y="262" class="card-title">E &#183; Network &amp; Runtime</text>
+  <text x="38" y="282" class="card-sub">Segmentation, private endpoints, sandbox</text>
+  <rect x="38" y="298" width="130" height="24" rx="12" fill="#b45309"/>
+  <text x="103" y="314" text-anchor="middle" class="card-status" fill="#fff">PARTIAL</text>
+  <text x="38" y="345" class="card-sub" style="font-size:10px;">Real in K8s (NetworkPolicy). No</text>
+  <text x="38" y="360" class="card-sub" style="font-size:10px;">sandboxed tool execution anywhere.</text>
+
+  <rect x="370" y="235" width="320" height="160" rx="10" fill="#fdf3e7" stroke="#b45309" stroke-width="2"/>
+  <text x="388" y="262" class="card-title">F &#183; Detection, Response &amp; SOC</text>
+  <text x="388" y="282" class="card-sub">SIEM, 24/7 monitoring, SOAR</text>
+  <rect x="388" y="298" width="130" height="24" rx="12" fill="#b45309"/>
+  <text x="453" y="314" text-anchor="middle" class="card-status" fill="#fff">PARTIAL</text>
+  <text x="388" y="345" class="card-sub" style="font-size:10px;">Splunk/CrowdStrike/Netskope/Zabbix</text>
+  <text x="388" y="360" class="card-sub" style="font-size:10px;">real. No 24/7 SOC, no SOAR.</text>
+
+  <rect x="720" y="235" width="320" height="160" rx="10" fill="#fbe9e7" stroke="#c4271a" stroke-width="2"/>
+  <text x="738" y="262" class="card-title">G &#183; Observability &amp; Compliance</text>
+  <text x="738" y="282" class="card-sub">Full-stack observability, retention</text>
+  <rect x="738" y="298" width="110" height="24" rx="12" fill="#c4271a"/>
+  <text x="793" y="314" text-anchor="middle" class="card-status" fill="#fff">MINIMAL</text>
+  <text x="738" y="345" class="card-sub" style="font-size:10px;">Hash chain proves the mechanism.</text>
+  <text x="738" y="360" class="card-sub" style="font-size:10px;">Not a compliance-grade retention story.</text>
+
+  <rect x="1070" y="235" width="330" height="160" rx="10" fill="#fbe9e7" stroke="#c4271a" stroke-width="2"/>
+  <text x="1088" y="262" class="card-title">H &#183; Resilience</text>
+  <text x="1088" y="282" class="card-sub">Multi-region, tested IR plan</text>
+  <rect x="1088" y="298" width="130" height="24" rx="12" fill="#c4271a"/>
+  <text x="1153" y="314" text-anchor="middle" class="card-status" fill="#fff">NOT BUILT</text>
+  <text x="1088" y="345" class="card-sub" style="font-size:10px;">Everything here is deliberately</text>
+  <text x="1088" y="360" class="card-sub" style="font-size:10px;">single-instance and disposable.</text>
+
+  <g transform="translate(20,420)">
+    <rect width="14" height="14" rx="3" fill="#0f9d63"/>
+    <text x="20" y="12" font-family="sans-serif" font-size="11" fill="#4a5265">real, validated control</text>
+    <rect x="230" width="14" height="14" rx="3" fill="#b45309"/>
+    <text x="250" y="12" font-family="sans-serif" font-size="11" fill="#4a5265">partial — real mechanism, incomplete coverage</text>
+    <rect x="590" width="14" height="14" rx="3" fill="#c4271a"/>
+    <text x="610" y="12" font-family="sans-serif" font-size="11" fill="#4a5265">not built — organizational or out-of-scope-for-a-lab</text>
+  </g>
+</svg>

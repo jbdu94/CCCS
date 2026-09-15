@@ -1,0 +1,16 @@
+# ClusterIP only - deliberately not a LoadBalancer or NodePort. Reach it
+# with `kubectl port-forward` (see port-forward.sh), which works from any
+# machine with kubectl access to the cluster and doesn't require your
+# lab to grant you permission to expose anything externally.
+apiVersion: v1
+kind: Service
+metadata:
+  name: purple-team-target
+  namespace: purple-team-lab
+spec:
+  selector:
+    app: purple-team-target
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
