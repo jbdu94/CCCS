@@ -1,0 +1,18 @@
+services:
+  target:
+    build: ./target
+    container_name: purple-team-target
+    ports:
+      - "8000:8000"
+    environment:
+      - MOCK_MODE=true
+      - EVENT_LOG_PATH=/logs/events.jsonl
+    volumes:
+      - ./logs:/logs
+    networks:
+      - sandbox
+
+networks:
+  sandbox:
+    driver: bridge
+    internal: false  # set true to fully block outbound traffic if you don't need MOCK_MODE=false

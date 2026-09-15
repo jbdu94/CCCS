@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Purple Team Lab — Full Documentation</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.mermaid) {
+      mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    }
+  });
+</script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #1a1a1a;
+    --muted: #5a5a5a;
+    --accent: #2b6cb0;
+    --code-bg: #f5f5f7;
+    --border: #e2e2e2;
+    --table-head: #f0f4f8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+  }
+  h1, h2, h3, h4 {
+    font-weight: 600;
+    line-height: 1.3;
+    margin-top: 2.2em;
+    margin-bottom: 0.6em;
+  }
+  h1 { font-size: 2rem; border-bottom: 3px solid var(--accent); padding-bottom: 0.3em; }
+  h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+  h3 { font-size: 1.2rem; color: var(--accent); }
+  p { margin: 0.9em 0; }
+  a { color: var(--accent); }
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background: var(--code-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1em 1.2em;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.88em;
+  }
+  pre.mermaid {
+    background: #fafbfc;
+    text-align: center;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.2em 0;
+    font-size: 0.92em;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 0.5em 0.8em;
+    text-align: left;
+  }
+  th { background: var(--table-head); font-weight: 600; }
+  tr:nth-child(even) { background: #fafafa; }
+  blockquote {
+    border-left: 4px solid var(--accent);
+    margin: 1em 0;
+    padding: 0.2em 1.2em;
+    color: var(--muted);
+    background: #f8fafc;
+  }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+  #TOC {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2em 1.8em;
+    margin: 2em 0;
+  }
+  #TOC ul { padding-left: 1.2em; }
+  #TOC > ul { list-style: none; padding-left: 0; }
+  .header-note {
+    background: #fff8e6;
+    border: 1px solid #f0d896;
+    border-radius: 8px;
+    padding: 0.8em 1.2em;
+    margin-bottom: 2em;
+    font-size: 0.92em;
+  }
+  img { max-width: 100%; height: auto; display: block; margin: 1.2em auto; }
+</style>
+</head>
+<body>
+<div class="header-note">
+  This HTML file is self-contained except for one thing: the architecture diagram renders live via <a href="https://mermaid.js.org" target="_blank">mermaid.js</a> loaded from a CDN, so an internet connection is needed for that diagram specifically to display. Everything else works fully offline.
+</div>
+<h1 id="purple-team-lab-full-documentation">Purple Team Lab — Full
+Documentation</h1>
+<p><strong>What this is:</strong> a throwaway lab that lets you run real
+attacks and real detection for AI agent and CI/CD supply-chain security
+— locally for free, or against real Azure/AWS/Kubernetes infrastructure,
+with real AI doing both the attacking and the defending. Everything can
+be deleted in one command when you’re done.</p>
+<p><strong>Before anything else, read this if you’re thinking about
+production:</strong> <a
+href="docs_assets/ENTERPRISE_REFERENCE_ARCHITECTURE.md"><code>docs_assets/ENTERPRISE_REFERENCE_ARCHITECTURE.md</code></a>
+— what a real enterprise actually needs for this (grounded in NIST AI
+RMF, SLSA, Zero Trust, OWASP Agentic/MCP Top 10), and an honest map of
+exactly which parts of that this lab has already validated versus which
+parts are organizational decisions no lab can solve for you. Read this
+before anyone says “let’s launch this in production.”</p>
+<p><strong>If you’re an automated agent setting this up:</strong> this
+repo has several <code>requirements.txt</code> files, not one. The one
+you almost certainly need is at the <strong>project root</strong>
+(<code>anthropic</code>, <code>openai</code>, <code>boto3</code>,
+<code>azure-identity</code>, <code>azure-keyvault-secrets</code> —
+everything the harness and every cloud attack script need).
+<code>target/requirements.txt</code> is only for the optional local test
+server and will NOT have what you need to run anything under
+<code>cloud_target/</code>. See the table in Section 4 for the full
+breakdown before installing anything.</p>
+<hr />
+<h2 id="before-anything-else-your-project-root">0. Before anything else:
+your project root</h2>
+<p>Every command in this document is a <strong>full path</strong>, not a
+relative one — no <code>cd</code> into a folder and hope for the best.
+To use these commands, you only need to know one thing: where you
+extracted the zip.</p>
+<p><strong>Your project root</strong> (based on what you’ve told me)
+is:</p>
+<pre><code>C:\Users\bruniasj\Downloads\workshop</code></pre>
+<p>Every command below is written against that exact path. If you move
+the folder, every command needs the same change — the path, nothing
+else.</p>
+<p>If someone else uses this doc with a different folder location, they
+just replace <code>C:\Users\bruniasj\Downloads\workshop</code> with
+wherever <em>they</em> extracted it, everywhere it appears.</p>
+<hr />
+<h2 id="what-problem-this-solves">1. What problem this solves</h2>
+<p>When you test AI agent or CI/CD security, you have two options:</p>
+<ul>
+<li>Talk about attacks in slides (not convincing, easy to dismiss as
+“nice try, not real”)</li>
+<li>Actually run the attacks and show what gets caught (convincing, hard
+to argue with)</li>
+</ul>
+<p>This project does the second one, safely. It never touches your real
+company systems.</p>
+<hr />
+<h2 id="architecture-how-the-pieces-fit-together">2. Architecture — how
+the pieces fit together</h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Target[&quot;1. TARGET — where the attack happens&quot;]
+        direction LR
+        Local[&quot;Local sandbox&lt;br/&gt;(free, offline, always works)&quot;]
+        Azure[&quot;Real Azure&lt;br/&gt;(API Center, Entra ID, DevOps Pipelines)&quot;]
+        AWS[&quot;Real AWS&lt;br/&gt;(Agent Registry, AgentCore, CodeArtifact)&quot;]
+        K8s[&quot;Real Kubernetes&lt;br/&gt;(registry + identity + gateway + agent-runtime + cicd)&quot;]
+    end
+
+    subgraph Red[&quot;2. RED TEAM — the attacker&quot;]
+        direction LR
+        RedScript[&quot;Scripted attack&lt;br/&gt;(fixed steps, free)&quot;]
+        RedAI[&quot;AI agent attack&lt;br/&gt;(Claude decides live)&quot;]
+    end
+
+    subgraph Log[&quot;3. EVENT LOG — the real record&quot;]
+        Events[(&quot;events.jsonl&lt;br/&gt;everything that really happened&quot;)]
+    end
+
+    subgraph Blue[&quot;4. BLUE TEAM — the detector&quot;]
+        direction LR
+        BlueScript[&quot;Scripted rules&lt;br/&gt;(signature + behavioral)&quot;]
+        BlueAI[&quot;AI SOC analyst&lt;br/&gt;(Claude reasons about it)&quot;]
+    end
+
+    subgraph Triage[&quot;5. TRIAGE — optional double-check&quot;]
+        TriageBox[&quot;AI asked 3x&lt;br/&gt;must show proof&lt;br/&gt;never deletes findings&quot;]
+    end
+
+    subgraph Out[&quot;6. SEND FINDINGS OUT&quot;]
+        direction LR
+        Splunk[&quot;Splunk&lt;br/&gt;(push alerts)&quot;]
+        CS_push[&quot;CrowdStrike&lt;br/&gt;(push as IOC)&quot;]
+    end
+
+    subgraph In[&quot;7. BRING IN OUTSIDE SIGNAL&quot;]
+        direction LR
+        CS_pull[&quot;CrowdStrike&lt;br/&gt;(pull real alerts)&quot;]
+        NS_pull[&quot;Netskope&lt;br/&gt;(pull real DLP alerts)&quot;]
+        ZB_pull[&quot;Zabbix&lt;br/&gt;(pull CPU/problem data)&quot;]
+    end
+
+    Target --&gt; Red
+    Red --&gt;|&quot;real attack, real API calls&quot;| Events
+    Events --&gt; Blue
+    In -.-&gt;|&quot;extra context&quot;| BlueAI
+    Blue --&gt; Triage
+    Blue --&gt; Out
+    Triage --&gt; Out</code></pre>
+<p><strong>In plain words:</strong></p>
+<ol type="1">
+<li><strong>Target</strong> — the thing being attacked. Local test app,
+real Azure/AWS, or a real Kubernetes namespace.</li>
+<li><strong>Red team</strong> — the attacker. Either a fixed script, or
+a real Claude AI agent that decides what to do on its own.</li>
+<li><strong>Event log</strong> — every real action gets written down
+here. This is the single source of truth.</li>
+<li><strong>Blue team</strong> — the detector. Either fixed rules
+(signature-matching AND behavioral pattern detection, combined), or a
+real Claude AI that reads the log and reasons about it.</li>
+<li><strong>Triage</strong> — an optional second AI opinion that checks
+the detector’s findings for mistakes, without ever hiding a real
+finding.</li>
+<li><strong>Send findings out</strong> — push confirmed findings to
+Splunk (alerts) or CrowdStrike (block list).</li>
+<li><strong>Bring outside signal in</strong> — pull real alerts from
+CrowdStrike, Netskope, and Zabbix so the AI detector has more to work
+with, not just its own data.</li>
+</ol>
+<h3 id="where-this-sits-in-a-real-organization">Where this sits in a
+real organization</h3>
+<p>The diagram above shows this lab’s own moving parts. The one below
+shows the bigger picture — where this pipeline sits inside a real
+company’s AI supply chain, left to right instead of top to bottom, and
+mapped to the exact use cases this lab tests:</p>
+<figure>
+<img src="docs_assets/architecture-horizontal.svg"
+alt="Horizontal architecture diagram showing CI/CD feeding an artifact feed, feeding a tool registry, mediated by a gateway that also checks identity, serving an agent runtime, wrapped by a governance and detection layer" />
+<figcaption aria-hidden="true">Horizontal architecture diagram showing
+CI/CD feeding an artifact feed, feeding a tool registry, mediated by a
+gateway that also checks identity, serving an agent runtime, wrapped by
+a governance and detection layer</figcaption>
+</figure>
+<p>Two things worth reading directly off this diagram:</p>
+<ul>
+<li><strong>Red boxes are attack surface, not defended in real
+time</strong> — the gateway (green) only sits between the registry and
+the agent runtime. Everything to the left of it (the CI/CD pipeline, the
+artifact feed, the registry itself) only has <em>detection</em> (the
+amber governance layer reading telemetry after the fact), not
+<em>prevention</em>. That gap is exactly what UC1 and UC4 test.</li>
+<li><strong>The amber arrows are dashed on purpose</strong> — they
+represent reading telemetry, not blocking anything. Confusing “we have a
+monitoring dashboard” with “we have a control” is the single most common
+gap this lab is built to expose.</li>
+</ul>
+<hr />
+<h2 id="the-four-attack-scenarios-use-cases">3. The four attack
+scenarios (use cases)</h2>
+<table>
+<colgroup>
+<col style="width: 5%" />
+<col style="width: 10%" />
+<col style="width: 35%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Name</th>
+<th>What gets attacked</th>
+<th>Real-world tools it maps to</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>UC1</td>
+<td>Supply Chain Poisoning</td>
+<td>A tool registry — register something safe-looking, then quietly
+change it after approval</td>
+<td>Azure API Center, AWS Agent Registry, Kubernetes (registry +
+gateway)</td>
+</tr>
+<tr class="even">
+<td>UC2</td>
+<td>Identity Hijacking</td>
+<td>An agent’s login credentials — reused from many places at once, like
+a stolen key</td>
+<td>Microsoft Entra ID, AWS AgentCore Identity, Kubernetes (identity +
+gateway)</td>
+</tr>
+<tr class="odd">
+<td>UC3</td>
+<td>Credential Harvesting</td>
+<td>A “helpful” chat agent — tricked into leaking a secret</td>
+<td>Local sandbox only</td>
+</tr>
+<tr class="even">
+<td>UC4</td>
+<td>CI/CD Supply Chain Compromise</td>
+<td>The build pipeline — unauthorized workflow trigger, poisoned
+package, stolen token, persistence marker</td>
+<td>Azure DevOps Pipelines + Artifacts, AWS CodePipeline + CodeArtifact,
+GitHub (PAT-authenticated,
+<code>cloud_target/azure/uc4_github_pat_attack.py</code>), Kubernetes
+(cicd service)</td>
+</tr>
+</tbody>
+</table>
+<p>UC1, UC2, and UC4 can run against real cloud/Kubernetes
+infrastructure. UC3 stays local only. UC4 also demonstrates the
+<strong>cross-branch bridge</strong>: a compromised CI/CD pipeline can
+register a new tool directly into UC1’s real gateway — showing how a
+supply-chain compromise turns into an MCP-layer compromise.</p>
+<p>UC4’s GitHub variant is confirmed working end-to-end against a real
+repository — real PAT authentication, a real commit
+(<code>HTTP 201</code>), and <code>5/6</code> detections from the
+resulting real telemetry. One thing worth knowing if you run it
+repeatedly: it now correctly checks whether its marker file already
+exists and includes the required <code>sha</code> to update it in place
+— the first version of this script only handled creating a brand-new
+file, so a second run against the same repo failed with <code>422</code>
+until this was fixed.</p>
+<p>UC2’s first-ever live run (local) found and fixed a real bug: the
+behavioral velocity check
+(<code>CREDENTIAL_MULTI_SOURCE_VELOCITY</code>, detecting a stolen
+credential replayed from multiple IPs in a short window) used a 2-second
+window that reset on any gap between events. On a machine with any
+meaningful network latency — an active VPN, EDR/antivirus connection
+inspection, a slow load balancer — that window is unrealistically tight
+and the check would silently miss a real attack, not just this lab’s
+simulated one. Fixed by widening the window to 60 seconds (closer to how
+production “impossible travel” detection actually works) and switching
+to a proper sliding-window-maximum instead of reset-on-gap, so one slow
+request can no longer wipe out everything counted before it. Verified
+against 5 scenarios — including the exact slow-network numbers this bug
+was found with — before trusting it: the real attack now detects
+correctly regardless of network speed, and genuinely benign or genuinely
+spread-out credential usage still correctly stays <code>CLEAN</code>.
+Confirmed clean afterward: <code>3/3</code> findings, real target, real
+telemetry, repeated twice.</p>
+<p>UC3’s first-ever live run confirmed the scenario’s intended design,
+not a bug: of 3 real credential leaks the attack produced, the
+regex-based layer only catches 1 (<code>2/6</code> findings). This is
+deliberate — the leaked API key in this scenario is
+<code>sk-lab-FAKE1234567890abcdef</code>, and the detection pattern
+(<code>sk-[a-zA-Z0-9]{10,}</code>, no hyphens allowed after the prefix)
+only sees 3 characters before hitting the hyphen in <code>sk-lab-</code>
+and stopping short of the required 10+. This is intentional — a real,
+common blind spot in naive regex-based credential scanners against
+non-standard key formats. The point is what happens next: the behavioral
+layer (<code>BEHAVIORAL_ESCALATING_HARVESTING_ATTEMPT</code>) still
+caught the attack — 3 extraction-style prompts in 4.1 seconds, flagged
+on the pattern of <em>asking</em>, independent of whether any individual
+response leaked. Two of three real leaks slipped past layer 1; the
+attack itself was still caught by layer 2. Confirmed live for the first
+time, <code>2/6</code> correctly reflecting the designed limitation
+rather than an unexpected gap. (The AI-driven detector,
+<code>--mode ai</code>, is designed to catch the API-key leak
+content-wise too, via semantic understanding rather than rigid pattern
+matching — worth a direct comparison once available.)</p>
+<hr />
+<h2 id="one-time-setup">4. One-time setup</h2>
+<p><strong>Option A — with Docker (needed if you want to try the
+Kubernetes/cloud paths later):</strong></p>
+<pre><code>C:\Users\bruniasj\Downloads\workshop&gt; docker compose up -d --build
+C:\Users\bruniasj\Downloads\workshop&gt; curl http://localhost:8000/healthz</code></pre>
+<p><strong>Option B — without Docker (fastest way to get started right
+now):</strong></p>
+<p>Open one PowerShell window and leave it running:</p>
+<pre><code>cd C:\Users\bruniasj\Downloads\workshop\target
+pip install -r requirements.txt
+python -m uvicorn app:app --host 0.0.0.0 --port 8000</code></pre>
+<p>(This <code>requirements.txt</code> is
+<code>target\requirements.txt</code> — the local test server’s own
+dependencies only. There’s a <em>different</em>, separate
+<code>requirements.txt</code> at the project root for the harness itself
+— see the table below.)</p>
+<p><strong>If uvicorn’s log lines show up as raw text like
+<code>←[32mINFO←[0m</code> instead of colored text:</strong> this is
+uvicorn correctly sending ANSI color codes, but Windows’ classic
+PowerShell console not being set up to render them (Windows Terminal
+handles this by default; the older console host needs to be told to).
+One-time fix, run once in PowerShell:</p>
+<pre><code>Set-ItemProperty HKCU:\Console VirtualTerminalLevel -Type DWORD 1</code></pre>
+<p>Close and reopen PowerShell after running that — colors will render
+correctly from then on, in this project and everywhere else. (If you’d
+rather not touch the registry, installing <a
+href="https://aka.ms/terminal">Windows Terminal</a> from the Microsoft
+Store and using that instead of the classic blue console window also
+fixes it, with no setting to change.)</p>
+<p>Then open a <strong>second</strong> PowerShell window for every
+command below.</p>
+<p><strong>This repo has several <code>requirements.txt</code> files —
+here’s exactly which one you need and when:</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>What it’s for</th>
+<th>When you need it</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>requirements.txt</code> (project root)</td>
+<td>The harness itself, plus every real Azure/AWS/OpenAI/GitHub
+integration (<code>anthropic</code>, <code>openai</code>,
+<code>boto3</code>, <code>azure-identity</code>,
+<code>azure-keyvault-secrets</code>)</td>
+<td>Always — this is the one for running <code>run_exercise.py</code>
+and any <code>cloud_target/*</code> attack script</td>
+</tr>
+<tr class="even">
+<td><code>target/requirements.txt</code></td>
+<td>Only the local test server (<code>fastapi</code>,
+<code>uvicorn</code>, <code>pydantic</code>)</td>
+<td>Only if you’re running the local sandbox target (Option A/B above) —
+irrelevant to cloud/Azure testing</td>
+</tr>
+<tr class="odd">
+<td><code>k8s/services/*/requirements.txt</code> (5 files)</td>
+<td>Each Kubernetes service’s own dependencies</td>
+<td>Never installed manually — these get baked into the pods
+automatically by
+<code>deploy_full_architecture.sh</code>/<code>.ps1</code></td>
+</tr>
+</tbody>
+</table>
+<p>Either way, install the harness’s own dependencies once — <strong>the
+root one</strong>, not <code>target/requirements.txt</code>:</p>
+<pre><code>pip install -r C:\Users\bruniasj\Downloads\workshop\requirements.txt</code></pre>
+<hr />
+<h2 id="how-to-use-with-full-path-examples">5. How to use — with
+full-path examples</h2>
+<p>Every example is a real, complete command. Copy, paste, adjust the
+path once if your folder is somewhere else.</p>
+<h3 id="the-basics-free-and-offline">5.1 The basics: free and
+offline</h3>
+<pre><code>python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 1 --mode scripted</code></pre>
+<pre><code>python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc all --mode scripted</code></pre>
+<h3 id="turn-on-real-ai">5.2 Turn on real AI</h3>
+<pre><code>set ANTHROPIC_API_KEY=sk-ant-...
+python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 1 --mode ai</code></pre>
+<p>(PowerShell users: <code>$env:ANTHROPIC_API_KEY = "sk-ant-..."</code>
+instead of <code>set</code>.)</p>
+<h3 id="the-best-demo-old-rules-vs.-real-ai-side-by-side">5.3 The best
+demo: old rules vs. real AI, side by side</h3>
+<pre><code>python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 3 --mode compare</code></pre>
+<h3 id="get-a-number-you-can-defend-not-a-one-off-story">5.4 Get a
+number you can defend, not a one-off story</h3>
+<pre><code>python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 1 --mode compare --runs 10</code></pre>
+<h3 id="add-a-second-ai-opinion-to-catch-mistakes">5.5 Add a second AI
+opinion to catch mistakes</h3>
+<pre><code>python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 1 --mode ai --triage</code></pre>
+<h3 id="run-uc4-the-cicd-supply-chain-scenario">5.6 Run UC4 — the CI/CD
+supply-chain scenario</h3>
+<pre><code>python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 4 --mode scripted</code></pre>
+<p>This one is worth running twice in a row: once with the fixed attack
+script, once with <code>--mode ai</code>, and comparing. It also proves
+it has <strong>zero false positives</strong> — a clean run against
+normal, approved CI/CD activity produces no detections at all, which you
+can see for yourself:</p>
+<pre><code>python C:\Users\bruniasj\Downloads\workshop\red_team\uc4_cicd_baseline.py --cicd-url http://localhost:8000
+python C:\Users\bruniasj\Downloads\workshop\blue_team\uc4_cicd_detector.py</code></pre>
+<h3
+id="run-it-against-a-real-cloud-account-instead-of-the-free-sandbox">5.7
+Run it against a real cloud account instead of the free sandbox</h3>
+<pre><code>cd C:\Users\bruniasj\Downloads\workshop\cloud_target\azure\infra
+.\deploy.sh</code></pre>
+<p>The script prints two values — export them, then:</p>
+<pre><code>set AZURE_RESOURCE_GROUP=rg-purple-team-lab
+set AZURE_APIC_NAME=&lt;value from deploy.sh output&gt;
+python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 1 --cloud azure --mode compare</code></pre>
+<p>Swap <code>azure</code> for <code>aws</code> to use AWS instead —
+setup is in
+<code>C:\Users\bruniasj\Downloads\workshop\cloud_target\aws\infra</code>.</p>
+<h3 id="run-it-against-your-own-kubernetes-namespace">5.8 Run it against
+your own Kubernetes namespace</h3>
+<pre><code>cd C:\Users\bruniasj\Downloads\workshop\k8s
+.\deploy_full_architecture.sh
+.\port-forward-gateway.sh</code></pre>
+<p>Leave that second command running in its own window, then in a new
+window:</p>
+<pre><code>python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 1 --target http://localhost:8000 --mode scripted</code></pre>
+<p>For UC4 specifically, forward the <code>cicd</code> service
+instead:</p>
+<pre><code>cd C:\Users\bruniasj\Downloads\workshop\k8s
+.\port-forward-cicd.sh</code></pre>
+<pre><code>python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 4 --target http://localhost:8010 --mode scripted</code></pre>
+<h3 id="everything-at-once-the-full-professional-run">5.9 Everything at
+once — the full professional run</h3>
+<pre><code>python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 2 --mode ai --cloud aws --runs 10 --enrich-crowdstrike --forward-splunk --triage</code></pre>
+<h3 id="clean-up-leave-nothing-behind">5.10 Clean up — leave nothing
+behind</h3>
+<pre><code>docker compose -f C:\Users\bruniasj\Downloads\workshop\docker-compose.yml down
+C:\Users\bruniasj\Downloads\workshop\cloud_target\azure\infra\teardown.sh
+C:\Users\bruniasj\Downloads\workshop\cloud_target\aws\infra\teardown.sh
+C:\Users\bruniasj\Downloads\workshop\k8s\teardown_full_architecture.sh</code></pre>
+<hr />
+<h2 id="connecting-to-detection-tools">6. Connecting to detection
+tools</h2>
+<p><strong>Quick summary of what’s possible with each tool:</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Tool</th>
+<th>Can we send it findings?</th>
+<th>Can we pull its findings?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Splunk</td>
+<td>Yes</td>
+<td>No (not needed — you’d search Splunk directly)</td>
+</tr>
+<tr class="even">
+<td>CrowdStrike</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td>Netskope</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>Zabbix</td>
+<td>No (it’s a monitoring tool, not an alerting channel)</td>
+<td>Yes (CPU/resource data + problems, useful for spotting a compromised
+CI runner)</td>
+</tr>
+</tbody>
+</table>
+<p>Every connector left unconfigured skips cleanly — no error, just a
+note that it was skipped.</p>
+<h3 id="splunk">Splunk</h3>
+<pre><code>set SPLUNK_HEC_URL=https://your-splunk-server:8088/services/collector/event
+set SPLUNK_HEC_TOKEN=your-hec-token
+python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 1 --mode scripted --forward-splunk</code></pre>
+<h3 id="crowdstrike">CrowdStrike</h3>
+<pre><code>set CROWDSTRIKE_CLIENT_ID=your-client-id
+set CROWDSTRIKE_CLIENT_SECRET=your-client-secret
+python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 2 --mode ai --enrich-crowdstrike</code></pre>
+<h3 id="netskope">Netskope</h3>
+<pre><code>set NETSKOPE_TENANT_HOSTNAME=yourtenant.goskope.com
+set NETSKOPE_API_TOKEN=your-api-token
+python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 2 --mode ai --enrich-netskope</code></pre>
+<h3 id="zabbix">Zabbix</h3>
+<pre><code>set ZABBIX_URL=https://zabbix.example.com
+set ZABBIX_API_TOKEN=your-api-token
+python C:\Users\bruniasj\Downloads\workshop\harness\run_exercise.py --uc 4 --mode ai --enrich-zabbix</code></pre>
+<hr />
+<h2 id="whats-in-each-folder">7. What’s in each folder</h2>
+<pre><code>C:\Users\bruniasj\Downloads\workshop\
+├── target\              the free local test app (UC1-3, all-in-one)
+├── red_team\             fixed-script attacks (free, no AI) — UC1-4
+├── blue_team\            fixed-rule detectors (free, no AI) — UC1-4, plus false-positive triage
+├── ai_red_team\          real Claude agent that attacks on its own
+├── ai_blue_team\         real Claude analyst that detects on its own
+├── cloud_target\         real Azure/AWS attack scripts — UC1, UC2, UC4
+├── k8s\                  real Kubernetes deployment — registry, identity, gateway, agent-runtime, cicd
+│   └── services\         source code for each Kubernetes service
+├── connectors\           Splunk, CrowdStrike, Netskope, Zabbix integration
+├── research\             a real, verified bypass technique against a published MCP scanner
+├── harness\              run_exercise.py — the command you actually run
+└── logs\                 events.jsonl — the real record of everything that happened</code></pre>
+<hr />
+<h2 id="safety-reminders">8. Safety reminders</h2>
+<ul>
+<li>Nothing in this lab ever touches your real company systems. Local
+mode runs in a throwaway process or container. Cloud/Kubernetes mode
+runs in a brand-new, empty resource group / namespace you create just
+for this.</li>
+<li>The AI attacker can only do what the tools we hand it allow —
+nothing more. It cannot reach outside the lab.</li>
+<li>Get written authorization before running any of this, even against
+your own throwaway cloud account, if your organization requires it for
+security testing.</li>
+<li>Run the teardown scripts after every use. Nothing should be left
+running.</li>
+</ul>
+<hr />
+<h2 id="if-a-command-doesnt-work">9. If a command doesn’t work</h2>
+<ul>
+<li><strong><code>docker: command not found</code></strong> — Docker
+Desktop isn’t installed. Use Option B in section 4 (no Docker needed),
+or install Docker Desktop first.</li>
+<li><strong><code>can't open file '...\run_exercise.py'</code></strong>
+— you used a relative path. Every command in this document is a full
+path already; copy it exactly, only changing
+<code>C:\Users\bruniasj\Downloads\workshop</code> if your folder is
+elsewhere.</li>
+<li><strong>The harness seems to hang forever</strong> — the target
+isn’t running. Start it first (section 4), then confirm with
+<code>curl http://localhost:8000/healthz</code> before running anything
+else. As of this version, the harness fails fast with a clear error
+instead of hanging if the target is unreachable — if you still see it
+hang, you’re on an older copy of this lab.</li>
+<li><strong><code>PermissionError</code> involving
+<code>/logs</code></strong> — you’re on an old copy of this lab. Current
+versions store logs inside the project folder, not at the filesystem
+root, and need no extra setup.</li>
+</ul>
+<hr />
+<h2 id="real-bugs-found-by-independent-review-cccs">10. Real bugs found
+by independent review (CCCS)</h2>
+<p>Before executing anything, an independent CCCS reviewer ran a full
+code review of this repo first. Three real defects were found this way —
+recorded here because catching things via review before execution, not
+after something breaks, is exactly the discipline this lab is built to
+demonstrate, and it deserves to be documented as such.</p>
+<ol type="1">
+<li><p><strong>UC4 never worked against the basic local target.</strong>
+<code>target/app.py</code> (what <code>docker compose up</code> starts)
+had real endpoints for UC1, UC2, and UC3 — but none for UC4.
+<code>python run_exercise.py --uc 4</code> against the default local
+setup was always going to fail; UC4 only ever worked via Kubernetes or a
+real GitHub repo. Fixed by porting UC4’s endpoints from
+<code>k8s/services/cicd/app.py</code> into <code>target/app.py</code>.
+Verified live: <code>8/8</code> findings, first time UC4 has worked
+against the plain local target.</p></li>
+<li><p><strong>A Splunk auto-forward footgun.</strong>
+<code>--prod</code> auto-enabled <code>--forward-splunk</code> whenever
+<code>SPLUNK_HEC_URL</code>/<code>SPLUNK_HEC_TOKEN</code> happened to be
+set in the environment — even if the user never passed
+<code>--forward-splunk</code> in that run. Unlike auto-enabling
+<code>--triage</code> (read-only analysis), this one sends data to a
+real external system: if those variables were left over from unrelated
+work, or pointed at a real production Splunk instance,
+<code>--prod</code> would silently forward this lab’s fake attack data
+to it. Fixed — sending data out now always requires the explicit flag,
+every time; <code>--prod</code> prints a note instead of auto-triggering
+if the env vars are present but the flag wasn’t passed. Verified: same
+env vars set, no flag passed, no forward attempted — just the
+note.</p></li>
+<li><p><strong>A missing <code>docker-compose.yml</code></strong> was
+reported from the pushed copy of this repo. The file exists and is
+correct in the source copy this documentation ships with — if you’re
+missing it, it means it didn’t make it into your <code>git push</code>;
+check with <code>git ls-files |    grep docker-compose</code> locally,
+or look directly on GitHub, rather than assuming the file was never
+built.</p></li>
+</ol>
+</body></html>

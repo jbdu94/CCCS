@@ -239,6 +239,99 @@ def chat(req: ChatRequest):
 
 
 # ---------------------------------------------------------------------------
+# UC4 — CI/CD Pipeline Simulator (Branch A)
+# ---------------------------------------------------------------------------
+# Ported from k8s/services/cicd/app.py so UC4 works out of the box against
+# the same local target everyone already starts with docker-compose /
+# uvicorn for UC1-3 - previously UC4 only worked via Kubernetes or a real
+# GitHub repo, which meant the standard "docker compose up, then run
+# run_exercise.py --uc 4" path in the documentation was always going to
+# fail. Found via independent code review (CCCS), fixed here.
+
+PUBLISHED_PACKAGES: dict[str, dict] = {}
+
+
+class WorkflowTrigger(BaseModel):
+    repo: str
+    actor: str
+    commit_before: str
+    commit_after: str
+    permissions_requested: list[str] = []
+    runner_id: str
+
+
+class PackagePublish(BaseModel):
+    name: str
+    version: str
+    sha256: str
+    publisher_identity: str
+    runner_id: str
+
+
+class TokenUse(BaseModel):
+    token_id: str
+    scope: str
+    used_by_runner: str
+    workflow_id: str
+
+
+class PersistenceMarker(BaseModel):
+    marker: str
+    location: str
+    reported_by: str
+
+
+@app.post("/workflows/trigger")
+def trigger_workflow(w: WorkflowTrigger):
+    log_event("workflow_triggered", "uc4", {
+        "repo": w.repo, "actor": w.actor,
+        "commit_before": w.commit_before, "commit_after": w.commit_after,
+        "permissions_requested": w.permissions_requested, "runner_id": w.runner_id,
+    })
+    return {"status": "triggered", "repo": w.repo}
+
+
+@app.post("/packages/publish")
+def publish_package(p: PackagePublish):
+    key = f"{p.name}@{p.version}"
+    PUBLISHED_PACKAGES[key] = {
+        "name": p.name, "version": p.version, "sha256": p.sha256,
+        "publisher_identity": p.publisher_identity, "runner_id": p.runner_id,
+        "published_at": datetime.now(timezone.utc).isoformat(),
+    }
+    log_event("package_published", "uc4", {
+        "name": p.name, "version": p.version, "sha256": p.sha256,
+        "publisher_identity": p.publisher_identity, "runner_id": p.runner_id,
+    })
+    return {"status": "published", "key": key}
+
+
+@app.get("/packages")
+def list_packages():
+    return list(PUBLISHED_PACKAGES.values())
+
+
+@app.post("/tokens/use")
+def use_token(t: TokenUse):
+    log_event("token_used", "uc4", {
+        "token_id": t.token_id, "scope": t.scope,
+        "used_by_runner": t.used_by_runner, "workflow_id": t.workflow_id,
+    })
+    return {"status": "recorded"}
+
+
+@app.post("/markers/report")
+def report_marker(m: PersistenceMarker):
+    """The poisoned package (simulated) reports that its persistence
+    marker executed - representing detection telemetry a real EDR/file
+    integrity monitor would generate, not the attacker's own admission."""
+    log_event("persistence_marker_detected", "uc4", {
+        "marker": m.marker, "location": m.location, "reported_by": m.reported_by,
+    })
+    return {"status": "recorded"}
+
+
+# ---------------------------------------------------------------------------
 # Admin
 # ---------------------------------------------------------------------------
 
@@ -246,6 +339,7 @@ def chat(req: ChatRequest):
 def reset():
     TOOL_REGISTRY.clear()
     IDENTITY_STORE.clear()
+    PUBLISHED_PACKAGES.clear()
     reset_log()
     return {"status": "reset"}
 

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 1 Recap — AI Agent Supply Chain Security</title>
+<style>
+  :root {
+    --navy-900: #0b1526;
+    --navy-800: #101d33;
+    --navy-700: #16263f;
+    --ink: #14181f;
+    --ink-soft: #4a5265;
+    --paper: #f7f8fa;
+    --panel: #ffffff;
+    --border: #e2e5ea;
+    --success: #0f9d63;
+    --success-bg: #e4f7ee;
+    --success-ink: #0b6b45;
+    --alert: #c4271a;
+    --alert-bg: #fbe9e7;
+    --alert-ink: #932016;
+    --accent: #2c5fe0;
+    --accent-bg: #eaf0fe;
+    --caution: #b45309;
+    --caution-bg: #fdf3e7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(155deg, var(--navy-900) 0%, var(--navy-700) 100%);
+    color: #eef2f8;
+    padding: 3.5rem 1.5rem 3rem;
+  }
+  .hero-inner { max-width: 1000px; margin: 0 auto; }
+  .pill {
+    display: inline-block;
+    font-size: 0.78rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.16);
+    color: #cdd6e6;
+    margin-bottom: 1.2rem;
+  }
+  h1.hero-title { font-size: 2.3rem; font-weight: 650; margin: 0 0 0.6rem; max-width: 22ch; letter-spacing: -0.01em; }
+  .hero-sub { color: #a9b4c7; font-size: 1.08rem; max-width: 68ch; margin: 0; }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 3rem 1.5rem; }
+  section { margin-bottom: 3rem; }
+  h2.section-title { font-size: 1.5rem; font-weight: 650; color: var(--navy-900); margin: 0 0 0.4rem; }
+  .section-desc { color: var(--ink-soft); margin: 0 0 1.6rem; max-width: 72ch; }
+
+  /* Value cards */
+  .value-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.1rem; }
+  .value-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--success);
+    border-radius: 12px;
+    padding: 1.3rem 1.5rem;
+  }
+  .value-card h3 { margin: 0 0 0.5rem; font-size: 1.05rem; color: var(--navy-900); }
+  .value-card p { margin: 0; font-size: 0.93rem; color: var(--ink-soft); }
+
+  /* Big stat row */
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+  .stat { background: var(--panel); padding: 1.3rem 1rem; text-align: center; }
+  .stat .num { font-size: 1.9rem; font-weight: 700; color: var(--navy-900); }
+  .stat .label { font-size: 0.8rem; color: var(--ink-soft); margin-top: 0.2rem; }
+
+  /* Maturity scorecard mini */
+  .maturity-row { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 1.2rem; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 0.6rem; }
+  .maturity-row .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .dot.green { background: var(--success); }
+  .dot.amber { background: var(--caution); }
+  .dot.red { background: var(--alert); }
+  .maturity-row .label { font-weight: 600; font-size: 0.92rem; flex: 1; }
+  .maturity-row .note { font-size: 0.85rem; color: var(--ink-soft); }
+
+  .callout {
+    background: var(--accent-bg);
+    border: 1px solid #c3d2fb;
+    border-radius: 12px;
+    padding: 1.3rem 1.6rem;
+    font-size: 0.98rem;
+  }
+  .callout strong { color: var(--accent); }
+
+  /* Techie section divider */
+  .techie-divider {
+    background: var(--navy-900);
+    color: #cdd6e6;
+    padding: 1.2rem 1.6rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+  }
+  .techie-divider strong { color: #fff; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--border); padding: 0.55rem 0.8rem; text-align: left; }
+  th { background: #f0f4f8; font-weight: 650; }
+  tr:nth-child(even) { background: #fafafa; }
+
+  .badge { font-size: 0.74rem; font-weight: 700; padding: 0.24rem 0.55rem; border-radius: 999px; white-space: nowrap; }
+  .badge.ok { background: var(--success-bg); color: var(--success-ink); }
+  .badge.partial { background: var(--caution-bg); color: var(--caution); }
+
+  code { font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; background: #f0f2f5; padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.88em; }
+
+  footer { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem 3rem; color: var(--ink-soft); font-size: 0.82rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+
+  @media (max-width: 720px) {
+    .value-grid { grid-template-columns: 1fr; }
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="pill">Day 1 Recap · AI Agent Supply Chain Security</span>
+    <h1 class="hero-title">We didn't just design a defense. We proved it works, on real infrastructure.</h1>
+    <p class="hero-sub">A working purple-team capability for AI agent supply-chain risk — attacks simulated, defenses tested, results validated against a real Kubernetes cluster on AWS EKS and a real GitHub repository. Azure and standalone-AWS targets are built and ready for the same live testing. Not slides. Not a proof of concept on a whiteboard. Real systems, real attacks, real results — and an honest account of what's tested versus what's built.</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <section>
+    <h2 class="section-title">The risk this addresses</h2>
+    <p class="section-desc">AI agents are being connected to real business systems — tool registries, CI/CD pipelines, cloud credentials — faster than security controls are keeping pace. A single poisoned tool definition, a compromised build pipeline, or a stolen credential can turn a helpful AI agent into an attack path into the business. This is not theoretical: it's now tracked as its own category by OWASP and referenced directly in NIST's AI risk guidance.</p>
+    <div class="callout">
+      <strong>What we did about it today:</strong> built a repeatable testing capability that simulates these exact attack patterns and proves — on real cloud infrastructure, not simulated systems — whether our defenses actually catch them.
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">What this is worth</h2>
+    <div class="value-grid">
+      <div class="value-card">
+        <h3>Tested against real infrastructure, not a demo</h3>
+        <p>Attacks ran against a real Kubernetes cluster on AWS EKS and a real GitHub repository — the same class of systems a production AI deployment would actually use. A result here means something in a way a slide deck never could. (Azure and standalone-AWS targets are built and ready; today's live runs were on Kubernetes and GitHub specifically — see the detail tables below for exactly what's tested versus what's built.)</p>
+      </div>
+      <div class="value-card">
+        <h3>Both halves of defense proven, separately</h3>
+        <p>Confirmed our prevention layer blocks a real malicious action in real time, before it happens. Separately confirmed that when prevention isn't in the path, detection still catches the attack immediately afterward, from real telemetry. Neither claim is assumed — both are demonstrated.</p>
+      </div>
+      <div class="value-card" style="border-left-color: var(--caution);">
+        <h3>An honest maturity picture, not a sales pitch</h3>
+        <p>Compared what we built against what a real enterprise security program requires — grounded in NIST's AI Risk Management Framework, Zero Trust architecture, and software supply-chain integrity standards (SLSA). We know exactly what's proven and what's still an organizational decision, not a code problem. See the scorecard below.</p>
+      </div>
+      <div class="value-card">
+        <h3>External validation underway</h3>
+        <p>Collaboration started with the Canadian Centre for Cyber Security (CCCS) to run this against their infrastructure — independent validation of these results, not just an internal claim.</p>
+      </div>
+      <div class="value-card">
+        <h3>Proven on the platform CCCS actually uses</h3>
+        <p>Confirmed today, live: a real, authenticated commit against a real GitHub repository, correctly caught by this lab's UC4 detector — the same script, unmodified, run directly against the real telemetry that commit produced. GitHub is the platform this CCCS workshop runs on — this is direct evidence, not an assumption it will translate.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Today's numbers</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="num">4</div><div class="label">attack scenarios built; 2 live-tested (UC1, UC4)</div></div>
+      <div class="stat"><div class="num">3</div><div class="label">real environments tested today (local, Kubernetes, GitHub)</div></div>
+      <div class="stat"><div class="num">2</div><div class="label">AI providers proven end-to-end</div></div>
+      <div class="stat"><div class="num">1 day</div><div class="label">to build and validate all of it</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Maturity scorecard — the honest version</h2>
+    <p class="section-desc">Where this stands against what a real enterprise security program needs. This is deliberately not all green — knowing the gap is the point.</p>
+    <div class="maturity-row"><div class="dot green"></div><div class="label">Tool/registry governance (catching a poisoned or tampered AI tool)</div><div class="note">Strongest area — proven on real infrastructure</div></div>
+    <div class="maturity-row"><div class="dot red"></div><div class="label">Identity &amp; access controls</div><div class="note">Built, not yet live-tested — no live validation exists yet for this control specifically</div></div>
+    <div class="maturity-row"><div class="dot amber"></div><div class="label">Software supply-chain integrity (CI/CD)</div><div class="note">Proven on GitHub specifically; Azure/AWS variants built, not yet live-tested; signing/provenance not yet built</div></div>
+    <div class="maturity-row"><div class="dot amber"></div><div class="label">Network isolation &amp; real-time blocking</div><div class="note">Proven in Kubernetes; not yet everywhere</div></div>
+    <div class="maturity-row"><div class="dot amber"></div><div class="label">Detection &amp; alerting integration</div><div class="note">Real SIEM/EDR integrations built; 24/7 monitoring is a staffing decision, not a code gap</div></div>
+    <div class="maturity-row"><div class="dot red"></div><div class="label">Governance ownership &amp; formal approval authority</div><div class="note">Organizational decision — needs a named owner, not more code</div></div>
+    <div class="maturity-row"><div class="dot red"></div><div class="label">Compliance-grade audit retention</div><div class="note">Not built — different requirement than a lab needs</div></div>
+    <div class="maturity-row"><div class="dot red"></div><div class="label">Resilience (multi-region, incident response plan)</div><div class="note">Not built — deliberately out of scope for this phase</div></div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Bottom line</h2>
+    <div class="callout">
+      This is a <strong>repeatable capability</strong>, not a one-time test. It can be re-run before any real AI agent deployment, or on a recurring schedule, the same way today's session ran — against real infrastructure, with real results, every time. The gaps above are known and specific, not hidden. That's the difference between a security claim we can defend to an auditor and one we can't.
+    </div>
+  </section>
+
+</div>
+
+<div class="wrap" style="padding-top: 0;">
+  <div class="techie-divider">
+    <strong>Everything below this line is technical detail</strong> — scenario definitions, real test output, and infrastructure specifics, for anyone who wants to verify the claims above directly.
+  </div>
+
+  <section>
+    <h2 class="section-title">The four attack scenarios</h2>
+    <table>
+      <tr><th>Scenario</th><th>What it tests</th><th>Real infra validated against</th></tr>
+      <tr><td><strong>UC1</strong> — Supply Chain Poisoning</td><td>A tool registered with an innocent description, then silently changed ("rug pull") after approval</td><td>Local, Kubernetes (AWS EKS) — <strong>live-tested</strong>. Azure API Center, AWS Agent Registry — built, not yet live-tested</td></tr>
+      <tr><td><strong>UC2</strong> — Identity Hijacking</td><td>A stolen/replayed credential used from multiple locations in a short window</td><td>Built — not yet live-tested, anywhere, by anyone in this engagement</td></tr>
+      <tr><td><strong>UC3</strong> — Credential Harvesting</td><td>Adaptive social-engineering prompts trying to extract secrets from a chat agent</td><td>Built — not yet live-tested, anywhere, by anyone in this engagement</td></tr>
+      <tr><td><strong>UC4</strong> — CI/CD Supply Chain Compromise</td><td>Unauthorized pipeline trigger, poisoned package publish, credential misuse, persistence</td><td>Local, GitHub (PAT) — <strong>live-tested</strong>. Azure DevOps, AWS CodeArtifact — built, not yet live-tested</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2 class="section-title">CI/CD supply-chain — what's actually been tested vs. what's built</h2>
+    <p class="section-desc">Being precise about this on purpose: "built and ready to test" and "actually tested with real credentials" are different claims, and only one of them belongs in front of a CISO as a result.</p>
+    <table>
+      <tr><th>Platform</th><th>Status</th><th>Evidence</th></tr>
+      <tr><td>GitHub (PAT-authenticated)</td><td><span class="badge ok">Live-tested today</span></td><td>Real commit (HTTP 201), 5/6 detections against real telemetry</td></tr>
+      <tr><td>Azure DevOps</td><td><span class="badge partial">Built, not yet live-tested</span></td><td>Verified the request shapes reach Microsoft's real API layer; no live run with real credentials yet</td></tr>
+      <tr><td>AWS CodeArtifact</td><td><span class="badge partial">Built, not yet live-tested</span></td><td>Verified against the real AWS SDK's service definitions; no live run with real credentials yet</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2 class="section-title">Kubernetes results (real AWS EKS, namespace <code>workshop-julie</code>)</h2>
+    <table>
+      <tr><th>Test</th><th>Mode</th><th>Result</th></tr>
+      <tr><td>Attack through the gateway (real-time prevention)</td><td>Scripted</td><td><span class="badge ok">BLOCKED — HTTP 403, clean</span></td></tr>
+      <tr><td>Attack direct to registry, no gateway (detection-only path)</td><td>Scripted</td><td><span class="badge ok">3/3 detections, confirmed twice</span></td></tr>
+      <tr><td>Attack direct to registry (AI-driven attacker + AI detector, OpenAI GPT-5.6)</td><td>AI</td><td><span class="badge ok">3/5 findings — full attack completed, correctly detected</span></td></tr>
+    </table>
+    <p style="font-size:0.85rem; color:var(--ink-soft); margin-top:0.8rem;">Full detail, including two real bugs found and fixed during testing (a crash-on-block error and an OpenAI API compatibility issue), documented in <code>Documentation_Kubernetes.md</code>.</p>
+  </section>
+
+  <section>
+    <h2 class="section-title">AI provider coverage</h2>
+    <table>
+      <tr><th>Provider</th><th>Model</th><th>Status</th></tr>
+      <tr><td>Anthropic (Claude)</td><td>Sonnet 5 / Opus 5</td><td><span class="badge ok">Validated for UC1 — local and real Kubernetes telemetry</span></td></tr>
+      <tr><td>OpenAI</td><td>GPT-5.6-terra (Responses API)</td><td><span class="badge ok">Validated for UC1 — both attacker and detector confirmed working against real Kubernetes telemetry</span></td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2 class="section-title">Reference documents</h2>
+    <table>
+      <tr><th>Document</th><th>Contents</th></tr>
+      <tr><td><code>DOCUMENTATION.md</code></td><td>Full lab architecture and setup instructions</td></tr>
+      <tr><td><code>Documentation_Kubernetes.md</code></td><td>Real AWS EKS test results with full terminal output and interpretation</td></tr>
+      <tr><td><code>docs_assets/ENTERPRISE_REFERENCE_ARCHITECTURE.md</code></td><td>The full enterprise standard this maturity scorecard is drawn from</td></tr>
+      <tr><td><code>cloud_target/azure/terraform-realistic-lab/</code></td><td>Terraform spec for a full realistic Azure deployment (built for CCCS)</td></tr>
+    </table>
+  </section>
+
+</div>
+
+<footer>
+  Day 1 recap — AI Agent Supply Chain Security purple-team capability. All infrastructure referenced is disposable and torn down between sessions; no production systems were touched.
+</footer>
+
+</body>
+</html>

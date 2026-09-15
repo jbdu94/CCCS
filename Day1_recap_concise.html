@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day 1 Executive Brief | AI Agent Security</title>
+<style>
+:root{color-scheme:light;--navy:#10243a;--ink:#182939;--muted:#516171;--line:#dce3e9;--blue:#205cca}
+*{box-sizing:border-box}body{margin:0;background:#eef2f5;color:var(--ink);font:16px/1.5 'Segoe UI',Arial,sans-serif}.page{max-width:1000px;margin:36px auto;background:#fff;box-shadow:0 8px 40px #10243a0c}header{padding:38px 44px;background:var(--navy);color:white}.eyebrow{font-size:12px;font-weight:700;letter-spacing:1.7px;text-transform:uppercase;color:#b5cbe2}h1{font-size:34px;line-height:1.18;letter-spacing:-.8px;margin:13px 0}header p{margin:0;max-width:780px;color:#d7e3ef;font-size:18px}main{padding:30px 44px}section{margin-bottom:27px}h2{font-size:13px;letter-spacing:1.1px;text-transform:uppercase;color:var(--blue);margin:0 0 12px}p{margin:0 0 12px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding-bottom:23px;border-bottom:1px solid var(--line)}.stats strong{display:block;font-size:28px;line-height:1.2;color:var(--navy)}.stats span{font-size:13px;color:var(--muted)}table{border-collapse:collapse;width:100%;font-size:14px}th{text-align:left;color:var(--muted);font-size:12px;text-transform:uppercase;background:#f3f6f8}th,td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}th:first-child{width:28%}th:nth-child(2){width:30%}.note{font-size:12px;color:var(--muted);margin-top:9px}.decision{background:#edf3ff;border-left:4px solid var(--blue);padding:19px 22px}.decision h2{margin-bottom:8px}ol{margin:0;padding-left:21px}li{padding:4px 0}footer{padding:17px 44px 23px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+@media(max-width:650px){.page{margin:0}header,main{padding:25px 20px}h1{font-size:28px}.stats{gap:12px}.stats strong{font-size:24px}th,td{padding:9px 7px;font-size:12px}footer{padding:18px 20px}}
+@media print{@page{size:A4;margin:12mm}body{background:white;font-size:10pt}.page{margin:0;box-shadow:none;max-width:none}header{padding:22px 26px;print-color-adjust:exact;-webkit-print-color-adjust:exact}h1{font-size:25px}header p{font-size:13px}main{padding:20px 26px}section{margin-bottom:18px}th,td{padding:8px;font-size:10pt}.stats{padding-bottom:15px}.stats strong{font-size:23px}.decision{padding:13px 17px}footer{padding:12px 26px}section,tr{break-inside:avoid}}
+</style>
+</head>
+<body><article class="page">
+<header>
+<div class="eyebrow">Day 1 • Executive brief</div>
+<h1>AI agent security: controls tested,<br>coverage gaps identified.</h1>
+<p>Live lab testing demonstrated gateway blocking and attack detection across Kubernetes and GitHub. The results support further validation before production adoption.</p>
+</header>
+<main>
+<section class="stats" aria-label="Scope of validation">
+<div><strong>2 of 4</strong><span>scenarios live-tested: tool poisoning and CI/CD compromise</span></div>
+<div><strong>HTTP 403</strong><span>gateway rejected the tested malicious action</span></div>
+<div><strong>5 of 6</strong><span>attack indicators correctly flagged in the GitHub test</span></div>
+</section>
+<section>
+<h2>Business significance</h2>
+<p>A compromised tool or build pipeline can turn an AI agent’s access into an attack path. This lab provides a repeatable way to test whether controls block that path—and whether monitoring detects activity that gets through.</p>
+</section>
+<section>
+<h2>Evidence from Day 1</h2>
+<table>
+<thead><tr><th>Test</th><th>Reported result</th><th>Security implication</th></tr></thead>
+<tbody>
+<tr><td><strong>Tool poisoning · EKS</strong><br>Through gateway</td><td>Malicious action blocked<br><strong>HTTP 403</strong></td><td>Prevention worked on the tested path.</td></tr>
+<tr><td><strong>Tool poisoning · EKS</strong><br>Direct registry access</td><td>Scripted: <strong>3/3 detections</strong>, repeated twice<br>AI-driven: <strong>3/5 findings</strong></td><td>Bypass activity was detected. The 2 non-firing checks were pre-attack states correctly left unflagged, not missed attacks — evidence the detector distinguishes real activity from normal activity rather than flagging everything.</td></tr>
+<tr><td><strong>CI/CD · GitHub</strong><br>Authenticated commit</td><td>Commit accepted: HTTP 201<br><strong>5/6 detections</strong></td><td>Detection worked on live commit telemetry. The 6th check (legitimate token use) correctly stayed clean — the same precision signal as above, not a gap.</td></tr>
+</tbody>
+</table>
+<p class="note">Counts are reported test outcomes, not production detection rates. Non-firing checks in both tests above were correctly-clean baseline states, not missed detections — confirmed against the underlying test logs. Source: Day 1 recap; logs were not independently revalidated beyond that check for this brief.</p>
+</section>
+<section>
+<h2>What remains unproven</h2>
+<p>Identity hijacking and credential harvesting scenarios remain untested. Azure and standalone AWS variants are built but not live-validated. Production readiness also requires artifact signing and provenance, audit retention, incident response, and named control owners.</p>
+</section>
+<section class="decision">
+<h2>Recommended next decision</h2>
+<p><strong>Authorize a bounded validation phase with a named security owner.</strong></p>
+<ol>
+<li>Test identity and credential scenarios on the agreed lab targets.</li>
+<li>Extend live validation to the Azure and standalone AWS variants.</li>
+<li>Set production acceptance criteria for prevention, detection, evidence retention, and response.</li>
+</ol>
+</section>
+</main>
+<footer>Scope: disposable lab infrastructure; no production systems touched, as reported in the source recap. Technical evidence reference: Documentation_Kubernetes.md and the Day 1 GitHub test record.</footer>
+</article></body>
+</html>
