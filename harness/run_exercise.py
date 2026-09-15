@@ -527,9 +527,20 @@ if __name__ == "__main__":
         if os.environ.get("ANTHROPIC_API_KEY") and not args.triage:
             args.triage = True
             print("[prod] auto-enabling --triage (ANTHROPIC_API_KEY is set)")
+        # --forward-splunk is deliberately NOT auto-enabled here, unlike
+        # --triage above. Found via independent code review (CCCS): triage
+        # only reads and analyzes locally-held data, but forwarding sends
+        # real findings to an EXTERNAL system - auto-triggering that just
+        # because SPLUNK_HEC_URL/TOKEN happen to be set in the environment
+        # (left over from unrelated work, a shared corporate variable, or
+        # anything else) risks silently sending this lab's fake attack
+        # data to a real, possibly-production Splunk instance the user
+        # never intended to touch in this run. Sending data out always
+        # requires the explicit --forward-splunk flag, every time.
         if os.environ.get("SPLUNK_HEC_URL") and os.environ.get("SPLUNK_HEC_TOKEN") and not args.forward_splunk:
-            args.forward_splunk = True
-            print("[prod] auto-enabling --forward-splunk (SPLUNK_HEC_URL/TOKEN are set)")
+            print("    [prod] NOTE: SPLUNK_HEC_URL/TOKEN are set, but --forward-splunk was not "
+                  "passed - findings will NOT be forwarded this run. Pass --forward-splunk "
+                  "explicitly if you want that.")
 
     if args.mode in ("ai", "compare"):
         needed_key = "OPENAI_API_KEY" if args.llm_provider == "openai" else "ANTHROPIC_API_KEY"
